@@ -1,0 +1,66 @@
+{
+  "pack": "PS Starter Pack",
+  "note": "Which skills the plugin ships and the version of each. sources/<slug>.SKILL.md is each one's text; npm run build stamps it into plugins/proskill/skills/. Edit the list by hand when the pack changes on ProSkill.",
+  "skills": [
+    {
+      "slug": "ps-creator",
+      "version": "v2.3",
+      "sourceSha256": "b945e08188d98445627026098f4cfc6b84eb2a61840ab194c59d18f699aa21b3"
+    },
+    {
+      "slug": "ps-deprecate",
+      "version": "v1.1",
+      "sourceSha256": "eb50c8a26d96d1f8cf002125fb2842337bd108ead8bb0240af2d21498f30cbdf"
+    },
+    {
+      "slug": "ps-feedback",
+      "version": "v1.1",
+      "sourceSha256": "06e34f29211a1817517c760ff73447bbe7ccfc1bc4f30d021125551f6b116a33"
+    },
+    {
+      "slug": "ps-install",
+      "version": "v2.1",
+      "sourceSha256": "e997542d8a229b9448a57d35ace12ca5feead39a95e5fc82ce041a69689b5303"
+    },
+    {
+      "slug": "ps-pending-reviews",
+      "version": "v1.1",
+      "sourceSha256": "5d8010a43150b86fffde6e856820c2c4ed8c11315f3dece473c31c76f270785e"
+    },
+    {
+      "slug": "ps-report",
+      "version": "v1.1",
+      "sourceSha256": "8341f3023f574d3de6eca5c3abb1367c1a7a6e2276d82d4d7f9d9baaf5eaa53c"
+    },
+    {
+      "slug": "ps-review",
+      "version": "v1.1",
+      "sourceSha256": "26c8165ee3d503cab95bfc2d3d0d6c509260b0affd00d42b5497a22b01684c12"
+    },
+    {
+      "slug": "ps-search",
+      "version": "v1.1",
+      "sourceSha256": "97d190c7451e81ab32404f370b67275ad1f8f2b9d2fae5793c7488eb9b5aa118"
+    },
+    {
+      "slug": "ps-search-idea",
+      "version": "v1.1",
+      "sourceSha256": "737c94fa4ecce42529a98e542d03179798e63c4f0f36666a274f2f163507fb5e"
+    },
+    {
+      "slug": "ps-share-skill",
+      "version": "v2.0",
+      "sourceSha256": "5bf491aa903397fc081439a75daecaa69c18eb9bf0028ceff64d6f73b5eda530"
+    },
+    {
+      "slug": "ps-submit-idea",
+      "version": "v1.1",
+      "sourceSha256": "4cb0c28645765b4b977c3041dff8d865b9add2a94c1e737f2f729c853cadaa80"
+    },
+    {
+      "slug": "ps-update",
+      "version": "v1.2",
+      "sourceSha256": "eccb42e2fa7f23b815e398b496bca4d5cc518a59f93777cf2207b98fca4eed3d"
+    }
+  ]
+}

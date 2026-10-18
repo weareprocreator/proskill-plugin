@@ -1,0 +1,16 @@
+{
+  "name": "proskill",
+  "owner": {
+    "name": "ProCreator"
+  },
+  "metadata": {
+    "description": "ProCreator's ProSkill plugins for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "proskill",
+      "source": "./plugins/proskill",
+      "description": "The ProSkill MCP server plus every skill in the PS Starter Pack."
+    }
+  ]
+}
