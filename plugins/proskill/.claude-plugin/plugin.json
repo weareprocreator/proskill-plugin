@@ -1,0 +1,16 @@
+{
+  "name": "proskill",
+  "version": "1.0.0",
+  "description": "ProSkill in Claude Code: the ProSkill MCP server plus every skill in the PS Starter Pack (search, install, update, publish, review, feedback, ideas, issue reports, sharing).",
+  "author": {
+    "name": "ProCreator"
+  },
+  "homepage": "https://proskill.ai",
+  "repository": "https://github.com/weareprocreator/proskill-plugin",
+  "keywords": [
+    "proskill",
+    "skills",
+    "mcp",
+    "starter-pack"
+  ]
+}

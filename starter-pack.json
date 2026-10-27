@@ -1,0 +1,66 @@
+{
+  "pack": "PS Starter Pack",
+  "note": "Which skills the plugin ships and the live version of each, as proskill.ai serves them. sources/<slug>/ is each skill's folder; npm run build stamps it into plugins/proskill/skills/. Refresh with npm run build -- --fetch.",
+  "skills": [
+    {
+      "slug": "ps-search",
+      "version": "v1.0",
+      "sourceSha256": "357a691ff2e5362d79e7d6516dc3fffa55fd6df08e24d0c18950132f20d29908"
+    },
+    {
+      "slug": "ps-install",
+      "version": "v1.0",
+      "sourceSha256": "760f2ae21b17d67f63313e21dfa7d6688ea5539b50ef5f315ca45f615563baa0"
+    },
+    {
+      "slug": "ps-update",
+      "version": "v1.1",
+      "sourceSha256": "ccbc80e8bc5ed7588b96c87207538b5387da1f62d8ed790543f77f228c7967a2"
+    },
+    {
+      "slug": "ps-creator",
+      "version": "v1.1",
+      "sourceSha256": "9d43c15e5225c50cde838acd05f70f374ad98e7205d3d3a4cde4364a9c4cd470"
+    },
+    {
+      "slug": "ps-share",
+      "version": "v1.0",
+      "sourceSha256": "4140283bbf90037696b580ec9236e518503541f1657e3260c91ece6bcca9fe28"
+    },
+    {
+      "slug": "ps-feedback",
+      "version": "v1.0",
+      "sourceSha256": "d612e82e057b62d6e7a08bcf451ed5d6d9cff4e24be35e1b29065bb0842c77de"
+    },
+    {
+      "slug": "ps-report",
+      "version": "v1.0",
+      "sourceSha256": "c861375c827e7ca26c31b505b01cc5e9195e86c714b10fbf793083a726dd0a63"
+    },
+    {
+      "slug": "ps-submit-idea",
+      "version": "v1.0",
+      "sourceSha256": "8af9d332861bf601b7cdbf4bbd784c38dd5f740d32a99e341aaff78bfcbff2f9"
+    },
+    {
+      "slug": "ps-search-idea",
+      "version": "v1.0",
+      "sourceSha256": "58c11259efbf81cb404108d9aa78a5da1d6afeb541a5758aa5179a17850b61fd"
+    },
+    {
+      "slug": "ps-pending-reviews",
+      "version": "v1.0",
+      "sourceSha256": "d234af16ce36ab584fc8cff4c71fdfc92cdd6a264cc8489cd0550b0df2dad3a0"
+    },
+    {
+      "slug": "ps-review",
+      "version": "v1.0",
+      "sourceSha256": "ff28b95c70654f9e9051bfd87f244ac6801ae378fc680350bc25046fb624fe4a"
+    },
+    {
+      "slug": "ps-archive",
+      "version": "v1.0",
+      "sourceSha256": "cea9d91b9fd1f26cece92846ece8ae15e9a0a6bdcdb060a31e6ac9ab429154e5"
+    }
+  ]
+}

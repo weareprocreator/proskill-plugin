@@ -1,0 +1,13 @@
+{
+  "name": "proskill-plugin",
+  "private": true,
+  "description": "The ProSkill plugin for Claude Code: the ProSkill MCP server and the PS Starter Pack skills.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test"
+  }
+}

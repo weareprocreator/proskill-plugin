@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "proskill": {
+      "type": "http",
+      "url": "${PROSKILL_MCP_URL:-https://proskill.ai/api/mcp}"
+    }
+  }
+}
