@@ -1,5 +1,5 @@
 ---
-name: ps-share-skill
+name: ps-share
 description: >-
   Help a user share a published ProSkill skill with people in their own
   organization, through the Share dialog on the skill's page in the ProSkill web
@@ -13,14 +13,14 @@ description: >-
   on THIS machine (that is ps-install) and not for publishing or versioning a
   skill (that is ps-creator).
 metadata:
-  proskill-slug: "ps-share-skill"
-  proskill-version: "v2.0"
+  proskill-slug: "ps-share"
+  proskill-version: "v1.0"
 ---
 
 <!-- proskill:update-check:start -->
 > **ProSkill update check (do this before anything else in this skill).**
-> This skill came from ProSkill: slug `ps-share-skill`, version `v2.0`.
-> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-share-skill", "installedVersion": "v2.0" }`.
+> This skill came from ProSkill: slug `ps-share`, version `v1.0`.
+> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-share", "installedVersion": "v1.0" }`.
 > 2. `up_to_date`: continue below.
 > 3. `update_available`: tell the user the installed and live versions and what changed, then ask whether to update now. Ask every run, even if they said no before. On no, continue below with this version. On yes, apply the returned version, then follow its instructions instead of the ones below.
 > 4. `rolled_back`: do not ask. Apply the returned live version, tell the user this version was rolled back and which version they are now on, then follow the new instructions instead of the ones below. `archived`: the skill was archived on ProSkill; do not run it, and tell the user why (`message`).
@@ -28,7 +28,7 @@ metadata:
 > 6. If ProSkill cannot be reached, the check fails, or it answers `unknown_skill`, continue below and tell the user the update check could not run.
 <!-- proskill:update-check:end -->
 
-# ps-share-skill
+# ps-share
 
 **Changed in this version:** this skill no longer sends skill files or messages to anyone; sharing now happens in the ProSkill web app's Share dialog, and this skill guides the user through it.
 

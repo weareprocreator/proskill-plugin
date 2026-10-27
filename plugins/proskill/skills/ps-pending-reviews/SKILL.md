@@ -3,13 +3,13 @@ name: ps-pending-reviews
 description: Show your organization's ProSkill review queue (the skills awaiting review, oldest-waiting first) by calling the connected ProSkill MCP connector. Use this whenever a teammate wants to see what is pending review on ProSkill, asks "show the review queue", "what skills are pending review", "what do I need to review on proskill", "anything waiting on my review", "what's assigned to me for review", "what's in the review backlog", "any skills awaiting approval", or otherwise wants to know which submitted skills still need a reviewer's attention. Reviewer/admin only. The teammate never has to mention the connector or name a raw tool; infer this skill from the intent.
 metadata:
   proskill-slug: "ps-pending-reviews"
-  proskill-version: "v1.1"
+  proskill-version: "v1.0"
 ---
 
 <!-- proskill:update-check:start -->
 > **ProSkill update check (do this before anything else in this skill).**
-> This skill came from ProSkill: slug `ps-pending-reviews`, version `v1.1`.
-> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-pending-reviews", "installedVersion": "v1.1" }`.
+> This skill came from ProSkill: slug `ps-pending-reviews`, version `v1.0`.
+> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-pending-reviews", "installedVersion": "v1.0" }`.
 > 2. `up_to_date`: continue below.
 > 3. `update_available`: tell the user the installed and live versions and what changed, then ask whether to update now. Ask every run, even if they said no before. On no, continue below with this version. On yes, apply the returned version, then follow its instructions instead of the ones below.
 > 4. `rolled_back`: do not ask. Apply the returned live version, tell the user this version was rolled back and which version they are now on, then follow the new instructions instead of the ones below. `archived`: the skill was archived on ProSkill; do not run it, and tell the user why (`message`).
@@ -50,7 +50,7 @@ Use when someone wants to see the review backlog: "show the review queue", "what
 
 > 2 skills are waiting for your review, longest-waiting first:
 >
-> 1. **PDF Splitter** (`pdf-splitter`): v1.2.0, Engineering / Utilities. Submitted by Jane Doe on 2026-06-10. "Split a PDF into one file per page." <url>
-> 2. **Invoice Parser** (`invoice-parser`): v0.3.0, Finance / Data. Submitted by Sam Lee on 2026-06-14. "Extract line items from supplier invoices." <url>
+> 1. **PDF Splitter** (`pdf-splitter`): v1.2, Engineering / Utilities. Submitted by Jane Doe on 2026-06-10. "Split a PDF into one file per page." <url>
+> 2. **Invoice Parser** (`invoice-parser`): v0.3, Finance / Data. Submitted by Sam Lee on 2026-06-14. "Extract line items from supplier invoices." <url>
 >
 > Want me to open one and walk you through it before you approve or send it back?

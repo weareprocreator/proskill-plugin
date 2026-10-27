@@ -3,13 +3,13 @@ name: ps-review
 description: Approve or reject a skill in your organization's ProSkill review queue. Approving publishes it; rejecting sends it back to the author with a required reason. Use this whenever a reviewer wants to act on a pending skill review, with phrasings like "approve the onboarding skill", "reject the changelog skill", "publish the pdf-export skill", "send the deploy skill back to the author", "request changes on the X skill", "sign off on X", "review X", or "decline X and tell them why". Reviewer/admin only. Fires on any approve/reject/publish/send-back intent against a named skill, even when the user never mentions the connector or a tool name.
 metadata:
   proskill-slug: "ps-review"
-  proskill-version: "v1.1"
+  proskill-version: "v1.0"
 ---
 
 <!-- proskill:update-check:start -->
 > **ProSkill update check (do this before anything else in this skill).**
-> This skill came from ProSkill: slug `ps-review`, version `v1.1`.
-> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-review", "installedVersion": "v1.1" }`.
+> This skill came from ProSkill: slug `ps-review`, version `v1.0`.
+> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-review", "installedVersion": "v1.0" }`.
 > 2. `up_to_date`: continue below.
 > 3. `update_available`: tell the user the installed and live versions and what changed, then ask whether to update now. Ask every run, even if they said no before. On no, continue below with this version. On yes, apply the returned version, then follow its instructions instead of the ones below.
 > 4. `rolled_back`: do not ask. Apply the returned live version, tell the user this version was rolled back and which version they are now on, then follow the new instructions instead of the ones below. `archived`: the skill was archived on ProSkill; do not run it, and tell the user why (`message`).
@@ -77,11 +77,11 @@ Relay errors plainly and do not retry blindly.
 User: "Approve the pdf-export skill."
 
 1. Action = approve. Slug = `pdf-export`.
-2. Call `get_pending_revision` with `{ slug: "pdf-export" }`. It returns `kind: "replacement"`, `versionNumber: "1.3.0"`, a `digest` and the content.
-3. Call `get_skill` with `{ slug: "pdf-export" }` and compare: "Version 1.3.0 adds a section on password-protected PDFs and a new example. Nothing else changed. Approve?"
+2. Call `get_pending_revision` with `{ slug: "pdf-export" }`. It returns `kind: "replacement"`, `versionNumber: "1.3"`, a `digest` and the content.
+3. Call `get_skill` with `{ slug: "pdf-export" }` and compare: "Version 1.3 adds a section on password-protected PDFs and a new example. Nothing else changed. Approve?"
 4. User: "Yes, note: thanks for the examples."
 5. Call `approve_skill` with `{ slug: "pdf-export", expectedDigest: "<digest>", note: "Thanks for the examples." }`.
-6. Report: "Approved and published **pdf-export** 1.3.0."
+6. Report: "Approved and published **pdf-export** 1.3."
 
 User: "Reject the changelog skill, the install steps are missing."
 

@@ -3,13 +3,13 @@ name: ps-search
 description: Search the ProSkill library in plain English, look up a skill's metadata, and pull its full content plus version history. Use this whenever the user wants to find a skill on ProSkill, asks "is there a proskill skill for X", "search proskill", "find a skill that does Y", "show me the skill called Z", "what does the {slug} skill do", "pull up the full content of that skill", or "what versions does {skill} have" / "show the version history". Trigger on any intent to discover, inspect, or read a published skill from your organization's ProSkill library, even when the user never mentions the connector or a tool name. It wraps the ProSkill MCP connector's discovery tools (search_skills, get_skill, list_skill_versions) so a teammate can just describe what they're looking for.
 metadata:
   proskill-slug: "ps-search"
-  proskill-version: "v1.1"
+  proskill-version: "v1.0"
 ---
 
 <!-- proskill:update-check:start -->
 > **ProSkill update check (do this before anything else in this skill).**
-> This skill came from ProSkill: slug `ps-search`, version `v1.1`.
-> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-search", "installedVersion": "v1.1" }`.
+> This skill came from ProSkill: slug `ps-search`, version `v1.0`.
+> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-search", "installedVersion": "v1.0" }`.
 > 2. `up_to_date`: continue below.
 > 3. `update_available`: tell the user the installed and live versions and what changed, then ask whether to update now. Ask every run, even if they said no before. On no, continue below with this version. On yes, apply the returned version, then follow its instructions instead of the ones below.
 > 4. `rolled_back`: do not ask. Apply the returned live version, tell the user this version was rolled back and which version they are now on, then follow the new instructions instead of the ones below. `archived`: the skill was archived on ProSkill; do not run it, and tell the user why (`message`).
@@ -78,6 +78,6 @@ Report each version newest first: version number, change summary, reason for cha
 **User:** "is there a proskill skill for writing client status updates? if so show me what it does."
 
 1. Call `search_skills` with `query: "client status update"`.
-2. The top match comes back as `{ title: "Client Status Update", slug: "client-update", currentVersion: "2.1.0", downloadCount: 47, isCommon: false, url: "https://proskill.ai/skills/client-update", ... }`.
+2. The top match comes back as `{ title: "Client Status Update", slug: "client-update", currentVersion: "v2.1", downloadCount: 47, isCommon: false, url: "https://proskill.ai/skills/client-update", ... }`.
 3. Call `get_skill` with `slug: "client-update"`.
-4. Report: "Found **Client Status Update** (slug `client-update`, v2.1.0, 47 installs, https://proskill.ai/skills/client-update). It does X, use it when Y, it expects Z as input and produces W." Then offer: "Want the version history too?" If yes, call `list_skill_versions` with `slug: "client-update"`.
+4. Report: "Found **Client Status Update** (slug `client-update`, v2.1, 47 installs, https://proskill.ai/skills/client-update). It does X, use it when Y, it expects Z as input and produces W." Then offer: "Want the version history too?" If yes, call `list_skill_versions` with `slug: "client-update"`.

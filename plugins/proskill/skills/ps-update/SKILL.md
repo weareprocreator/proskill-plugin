@@ -3,13 +3,13 @@ name: ps-update
 description: This skill should be used to update ProSkill skills, in two modes. INSTALLED mode (anyone): check the skills in ~/.claude/skills against ProSkill and apply newer or rolled back versions, including old installs from skills.procreator.design, and move a ProSkill connector to proskill.ai. Use for "update my installed skills", "check my skills for updates", "are my skills up to date", "update all my skills", "get the latest version of X", "a skill says an update is available", "move my ProSkill connector to proskill.ai". PUBLISH mode (authors): push the user's own local edits to a skill already on ProSkill as a new version. Use for "push a new version of X", "publish my changes to X on ProSkill", "release v1.1 of X", "bump the version of my skill X", "sync my local edits to the published skill". Not for a first install (ps-install), a first publish (ps-creator), or writing SKILL.md content (skill-creator).
 metadata:
   proskill-slug: "ps-update"
-  proskill-version: "v1.2"
+  proskill-version: "v1.1"
 ---
 
 <!-- proskill:update-check:start -->
 > **ProSkill update check (do this before anything else in this skill).**
-> This skill came from ProSkill: slug `ps-update`, version `v1.2`.
-> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-update", "installedVersion": "v1.2" }`.
+> This skill came from ProSkill: slug `ps-update`, version `v1.1`.
+> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-update", "installedVersion": "v1.1" }`.
 > 2. `up_to_date`: continue below.
 > 3. `update_available`: tell the user the installed and live versions and what changed, then ask whether to update now. Ask every run, even if they said no before. On no, continue below with this version. On yes, apply the returned version, then follow its instructions instead of the ones below.
 > 4. `rolled_back`: do not ask. Apply the returned live version, tell the user this version was rolled back and which version they are now on, then follow the new instructions instead of the ones below. `archived`: the skill was archived on ProSkill; do not run it, and tell the user why (`message`).
@@ -84,12 +84,31 @@ which returns the skill only when the user is its author or a collaborator.
 State the slug and current version in one line before acting (for example "Found
 `standup-notes` at v1.3, pushing your local changes as a new version").
 
-### A3. Pre-flight the local folder
+### A3. Security gate (before `update_skill`)
 
-- `SKILL.md` parses as valid frontmatter plus a structured body (a heading, list or numbered
-  step, at least 80 characters).
-- No secrets or credentials in any file (API keys, tokens, `.env` contents).
-- Every file the SKILL.md body references (scripts, references, assets) is present.
+A new version passes the same security gate as a new skill. Apply **`ps-creator`'s step 4**
+exactly: run its `scripts/preflight.py` on the folder in `update` mode, passing the listing
+fields you change in A5 (run it again if they change later), and act on the result before A6.
+`update_skill` on a published skill opens the pending update in the review queue at once, so
+the gate has to come first.
+
+- **Blockers stop the update.** Credentials (in the SKILL.md, a listing field or any file in
+  the folder), a credential file such as `.env`, an unstructured SKILL.md (it needs a heading,
+  list or numbered step and at least 80 characters), `instructions` over 1024 characters, or a
+  folder over 10 MB. Do not package, call `update_skill` or upload. Help the user fix each one
+  and run the gate again. There is no "push anyway" for a blocker.
+- **Warnings get a decision each.** For every warning (prompt injection, safety bypass, a
+  jail-break mention, pipe to shell, a shell script, a weak description), tell the user what
+  was found and where, what fixing it changes and costs, and what pushing it anyway means
+  (reviewers and everyone who opens the skill's page see it under Security scan; an admin can
+  raise the rule to critical later), using `ps-creator`'s warning table. Ask "Fix it, or push
+  it anyway?" and wait. No answer means do not push. A fix changes what the text says or does;
+  never disguise flagged content to get past the scan.
+- If `ps-creator` is not installed, apply the rules above by reading the SKILL.md, the changed
+  listing fields and every text file in the folder, and say that you checked by hand.
+
+Also check that every file the SKILL.md body references (scripts, references, assets) is
+present.
 
 ### A4. Package the `.skill` bundle
 
@@ -110,14 +129,16 @@ Skip this step for a listing-only change (A6 then passes `metadataOnly: true`).
 
 ### A5. Decide the version bump and change summary
 
-`update_skill` requires both, with no default:
+`update_skill` requires `changeSummary`; `versionBump` defaults to `minor` when omitted, but always pass it explicitly:
 
 - `changeSummary`: what changed, one line, drafted from the diff against `get_my_draft` and
   confirmed with the user.
-- `versionBump`: `patch` (typos, wording), `minor` (new steps or behavior) or `major` (a
+- `versionBump`: `minor` (wording fixes, new steps or behavior; versions are two-part, so there is no patch step) or `major` (a
   rewrite or a breaking change). State your pick and let the user override it.
 
-Optionally pass `reasonForChange`. Pass only the metadata fields that changed. `tags`
+Optionally pass `reasonForChange`; when the user chose to push a scan warning anyway in A3,
+put it there with their reason (for example "Scan warning accepted: contains a shell script;
+the commands are the skill's job"). Pass only the metadata fields that changed. `tags`
 **replaces** the whole list, so include the existing tags alongside any new ones.
 
 ### A6. Call `update_skill`
@@ -136,8 +157,9 @@ are changed in the web app on the skill page.
 On a published skill, a new bundle and any change to a content field (everything except
 `tags` and `shortDescription`) are held as a **pending update** for a reviewer or admin in the
 organization to approve. People keep getting the previous version until then, and the new
-version number appears on approval. Only `tags` and `shortDescription` change at once. The
-answer includes `heldForReview: true` and an `uploadUrl` bound to exactly your bundle.
+version number appears on approval. Only `tags` and `shortDescription` change at once. With a
+new bundle, the answer includes `heldForReview: true` and an `uploadUrl` bound to exactly your
+bundle. A `metadataOnly` answer has no `uploadUrl`.
 
 ### A7. Upload the bundle bytes (only if A6 returned an `uploadUrl`)
 
@@ -147,14 +169,28 @@ curl -sS -w '\nHTTP %{http_code}\n' -F "file=@$out/<slug>.skill" "<uploadUrl>"
 
 The link is valid for 15 minutes. The server re-verifies size, hash and zip structure, then
 scans the SKILL.md and answers with a `scan` object (`passed`, `blockers`, `advisories`,
-`message`) and a `staged` object naming the pending version. HTTP 422 means the scan failed:
-relay every entry in `blockers` as written, fix them with the user, and redo A4 to A7. A 400
+`message`) and a `staged` object naming the pending version. The server's verdict is the
+authority (an organization can add rules or raise one to critical), so apply it as in
+`ps-creator`'s step 8:
+
+- HTTP 422 (`passed: false`): blocked. The pending update carries the failed scan and cannot be
+  approved; people keep the previous version. Relay every entry in `blockers` as written, fix
+  them with the user, run A3 again, and redo A4 to A7 with the same `versionBump`: it replaces
+  the same pending update and keeps its version number.
+- An advisory the user has not decided yet (an organization's own rule, or "Possible duplicate
+  skill", which only the server can check): give the same fix or push-anyway choice as in A3.
+  Push anyway leaves the update in the queue; fix means redo A3 to A7 with the corrected
+  folder.
+
+A 400
 names a mismatch or a bad bundle (usually the bundle changed after hashing, or `SKILL.md` is
 missing); a 403 means the link expired (repeat A6). Never report a non-2xx as success.
 
 ### A8. Report the result
 
-Report the slug, what changed (listing, bundle, or both), and that the update now waits in the
+Report the slug, what changed (listing, bundle, or both), the security outcome ("Security
+scan passed", or each warning pushed anyway with the user's reason), and, unless only `tags` or
+`shortDescription` changed (those apply immediately), that the update waits in the
 organization's review queue while people keep the previous version. `list_skill_versions(slug)`
 shows the history once it is approved. If the folder was an installed copy, its stamp still
 names the old version, so a later update check offers the new one: that is expected.
@@ -320,7 +356,8 @@ take effect the next time they run; suggest a new session if one is needed right
 ## Examples
 
 **Mode A.** "Push my local changes to `standup-notes` on ProSkill, I added a new step." Read
-the folder, `get_my_draft("standup-notes")` (author, published, v1.3), pre-flight, zip and
+the folder, `get_my_draft("standup-notes")` (author, published, v1.3), the security gate
+(clean), zip and
 hash, confirm `changeSummary: "Add a step for handling no-shows"` and `versionBump: minor`,
 `update_skill` returns `heldForReview: true` and an `uploadUrl`, the upload returns 201 with a
 passing scan. Report: "Pushed `standup-notes`; the update waits for review, and people keep
@@ -337,6 +374,10 @@ updated, `my-notes` left as is, backups in `~/.claude/skills-backup/`.
 
 ## Changelog
 
+- **v1.3:** Mode A runs `ps-creator`'s security gate before `update_skill`: blockers stop the
+  update, and each warning gets a fix or push-anyway decision with what each choice means. The
+  server's verdict after upload is applied the same way, and accepted warnings go into
+  `reasonForChange` and the report.
 - **v1.2:** one organization at a time. `unknown_skill` means not available in this
   organization (or not shared with the user) and offers `report_unlisted_skill`. Mode A checks
   ownership with `get_my_draft`, sends no people fields to `update_skill`, passes

@@ -1,7 +1,21 @@
 ---
 name: ps-report
 description: Report a problem with the ProSkill product from inside a Claude session, with an optional screenshot, or flag a local skill that is not on ProSkill. Use whenever the user wants to "report an issue", "report a bug", "file a bug on ProSkill", "something is broken in ProSkill", "the ProSkill page won't load", "the install failed", "the MCP tool errored", "raise a problem with the skill hub", or otherwise describes a defect, glitch, error or usability problem they hit while using ProSkill (the website, a page, an MCP tool, an install, sign-in, search). Also use when they say "I have a skill that isn't on ProSkill", "this local skill isn't listed", "report an unlisted skill", or the update check answered unknown_skill. Triggers even when the user does not say "skill" but is clearly reporting a ProSkill problem. Not for feedback or ratings on a specific skill's content (use ps-feedback), and not for filing issues in other trackers or repositories.
+metadata:
+  proskill-slug: "ps-report"
+  proskill-version: "v1.0"
 ---
+
+<!-- proskill:update-check:start -->
+> **ProSkill update check (do this before anything else in this skill).**
+> This skill came from ProSkill: slug `ps-report`, version `v1.0`.
+> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-report", "installedVersion": "v1.0" }`.
+> 2. `up_to_date`: continue below.
+> 3. `update_available`: tell the user the installed and live versions and what changed, then ask whether to update now. Ask every run, even if they said no before. On no, continue below with this version. On yes, apply the returned version, then follow its instructions instead of the ones below.
+> 4. `rolled_back`: do not ask. Apply the returned live version, tell the user this version was rolled back and which version they are now on, then follow the new instructions instead of the ones below. `archived`: the skill was archived on ProSkill; do not run it, and tell the user why (`message`).
+> 5. To apply: where you can write to this skill's folder, replace it with the verified bundle from the result; otherwise use the returned `instructions` for this run and give the user the `.skill` file to re-add. Details: the `ps-update` skill.
+> 6. If ProSkill cannot be reached, the check fails, or it answers `unknown_skill`, continue below and tell the user the update check could not run.
+<!-- proskill:update-check:end -->
 
 # ps-report: report a ProSkill problem
 
@@ -15,7 +29,7 @@ Turn "something in ProSkill is broken" into a filed report without the user leav
 
 ## One organization at a time
 
-Your ProSkill connection belongs to one organization. A report is stored in that organization; `report_issue` reports are routed to the team that runs ProSkill, and `report_unlisted_skill` notifies your organization's admins. There is no organization argument.
+Your ProSkill connection belongs to one organization. A report is stored in that organization; `report_issue` reports are stored in your organization and your organization's admins are notified, and `report_unlisted_skill` notifies your organization's admins. There is no organization argument.
 
 ## Prerequisite: the ProSkill connector
 
@@ -38,7 +52,7 @@ Both tools live on the ProSkill remote MCP server (`https://proskill.ai/api/mcp`
 
 The tool never takes the image itself. Never base64-encode a screenshot or put its bytes in the call.
 
-On success it returns `{ reported: true, issueId, url, severity, screenshotAttached, asUser }`, plus `uploadUrl`, `awaitingScreenshot` and `nextStep` when you declared a screenshot. `screenshotAttached` is `false` until the bytes are uploaded.
+On success it returns `{ reported: true, issueId, severity, screenshotAttached, asUser }`, plus `url` for an organization admin or `note` for everyone else. It also returns `uploadUrl`, `awaitingScreenshot` and `nextStep` when you declared a screenshot, and `screenshotIgnored` if a legacy `screenshotBase64` was sent. `screenshotAttached` is `false` until the bytes are uploaded.
 
 ### 1. Draft the report
 
@@ -76,7 +90,7 @@ The URL is short-lived and bound to the hash and size you declared, so upload th
 
 ### 5. Report back
 
-Confirm in one line with the severity and the returned `url`, e.g. "Filed as a `medium` issue: <url>." Mention that the link opens for the people who manage issues in their organization, so they may not be able to open it themselves. If they meant to include a screenshot and it was not uploaded, say so.
+Confirm in one line with the severity. If the result has `url` (admins only), include it, e.g. "Filed as a `medium` issue: <url>."; otherwise relay `note`. If `screenshotIgnored` is present, or they meant to include a screenshot and it was not uploaded, say the screenshot was not attached.
 
 ### Errors
 

@@ -1,7 +1,21 @@
 ---
 name: ps-install
 description: Install a published ProSkill skill onto this machine by name. It resolves the name to its slug, fetches the skill from the ProSkill MCP connector as a packaged .skill bundle, downloads that bundle to the user's Downloads folder, verifies it, and hands the user a link to open it and add it to their library. Use whenever a teammate wants to pull a skill down locally, with phrasings like "install the X skill from proskill", "grab the X skill", "add X skill locally", "download a named skill from our skill hub", "set up a named skill on my machine", or "get me a skill by name", even when they never mention the connector or a raw tool name. This is the standard way to install one named ProSkill skill locally.
+metadata:
+  proskill-slug: "ps-install"
+  proskill-version: "v1.0"
 ---
+
+<!-- proskill:update-check:start -->
+> **ProSkill update check (do this before anything else in this skill).**
+> This skill came from ProSkill: slug `ps-install`, version `v1.0`.
+> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-install", "installedVersion": "v1.0" }`.
+> 2. `up_to_date`: continue below.
+> 3. `update_available`: tell the user the installed and live versions and what changed, then ask whether to update now. Ask every run, even if they said no before. On no, continue below with this version. On yes, apply the returned version, then follow its instructions instead of the ones below.
+> 4. `rolled_back`: do not ask. Apply the returned live version, tell the user this version was rolled back and which version they are now on, then follow the new instructions instead of the ones below. `archived`: the skill was archived on ProSkill; do not run it, and tell the user why (`message`).
+> 5. To apply: where you can write to this skill's folder, replace it with the verified bundle from the result; otherwise use the returned `instructions` for this run and give the user the `.skill` file to re-add. Details: the `ps-update` skill.
+> 6. If ProSkill cannot be reached, the check fails, or it answers `unknown_skill`, continue below and tell the user the update check could not run.
+<!-- proskill:update-check:end -->
 
 # ps-install
 
@@ -73,8 +87,8 @@ When the user wants "the default skills" or "everything my organization recommen
 User: "install the changelog-writer skill from proskill"
 
 1. Call `search_skills` with `query: "changelog-writer"`: one match, slug `changelog-writer`.
-2. Call `install_skill` with `slug: "changelog-writer"`: returns the skill (with `version: "v3"`) plus a `files[]` holding one packaged bundle (`changelog-writer.skill`, `sizeBytes`, `sha256`, `downloadUrl`).
+2. Call `install_skill` with `slug: "changelog-writer"`: returns the skill (with `version: "v3.0"`) plus a `files[]` holding one packaged bundle (`changelog-writer.skill`, `sizeBytes`, `sha256`, `downloadUrl`).
 3. Download `downloadUrl` to `~/Downloads/changelog-writer.skill` without unpacking it.
 4. Verify: the byte length matches `sizeBytes` and the SHA-256 matches `sha256`.
-5. Report: "Downloaded **Changelog Writer** (slug `changelog-writer`, v3) to `~/Downloads/changelog-writer.skill`. Open that file and choose **Add to library** to install it."
+5. Report: "Downloaded **Changelog Writer** (slug `changelog-writer`, v3.0) to `~/Downloads/changelog-writer.skill`. Open that file and choose **Add to library** to install it."
 6. Once the user confirms it is in their library, call `confirm_skill_install` with `slug: "changelog-writer"` and `client: "Claude Code"`.

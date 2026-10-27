@@ -3,13 +3,13 @@ name: ps-search-idea
 description: Search and browse the ProSkill idea board by free text, status, sort, and scope, using the connected "ProSkill" MCP connector. Use this whenever a teammate wants to search the idea board, asks "what ideas exist for X", "has someone already suggested X", "browse proskill ideas", "show me open ideas", "what's been proposed for the design team", "any planned ideas about onboarding", or otherwise wants to find, check, or look through skill ideas before submitting a new one. Trigger even when the user does not mention the connector or name a tool, as long as they are clearly trying to find or browse ideas on the ProSkill idea board.
 metadata:
   proskill-slug: "ps-search-idea"
-  proskill-version: "v1.1"
+  proskill-version: "v1.0"
 ---
 
 <!-- proskill:update-check:start -->
 > **ProSkill update check (do this before anything else in this skill).**
-> This skill came from ProSkill: slug `ps-search-idea`, version `v1.1`.
-> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-search-idea", "installedVersion": "v1.1" }`.
+> This skill came from ProSkill: slug `ps-search-idea`, version `v1.0`.
+> 1. Call the ProSkill MCP tool `check_skill_version` with `{ "slug": "ps-search-idea", "installedVersion": "v1.0" }`.
 > 2. `up_to_date`: continue below.
 > 3. `update_available`: tell the user the installed and live versions and what changed, then ask whether to update now. Ask every run, even if they said no before. On no, continue below with this version. On yes, apply the returned version, then follow its instructions instead of the ones below.
 > 4. `rolled_back`: do not ask. Apply the returned live version, tell the user this version was rolled back and which version they are now on, then follow the new instructions instead of the ones below. `archived`: the skill was archived on ProSkill; do not run it, and tell the user why (`message`).
@@ -37,7 +37,7 @@ Use this when a teammate wants to find or browse skill ideas: checking whether s
 
 1. **Map the request to arguments.** All optional:
    - `query`: free text searched over the idea title and problem statement. Pull the topic from what they said (for example, "ideas for onboarding" becomes `query: "onboarding"`). Omit it to browse everything.
-   - `status`: one of `submitted`, `under_discussion`, `accepted`, `converted`, `rejected`, `parked`. Map the user's words: "open" or "new" to `submitted`, "being discussed" to `under_discussion`, "planned" or "approved" to `accepted`, "built" or "shipped" to `converted`, "declined" to `rejected`, "on hold" to `parked`. Any other value is ignored and returns every status, so use only these six.
+   - `status`: one of `submitted`, `under_discussion`, `accepted`, `converted`, `rejected`, `parked`. Map the user's words: "open" or "new" to `submitted`, "being discussed" to `under_discussion`, "planned" or "approved" to `accepted`, "built" or "shipped" to `converted`, "declined" to `rejected`, "on hold" to `parked`. Any other value is refused with "Unknown idea status ...", so use only these six, or leave status out.
    - `sort`: `top` (default, most upvoted), `newest`, or `discussed`. Use `newest` for "latest" or "recent", `discussed` for "most talked about".
    - `scope`: `department`, `mine`, or both as `"department,mine"`. Omit it (or pass `all`) for the whole board. `department` means the user's own department in this organization: use it for "my team's ideas" or "ideas for my department". `mine` means ideas the user submitted. If the user has no department set, `department` narrows nothing. To look at a department other than the user's own, use `query` instead and filter the results by their `department` field.
    - `page`: 1-based, 20 ideas per page. Default to page 1; only set it if the user asks for more or the next page.
@@ -48,6 +48,7 @@ Use this when a teammate wants to find or browse skill ideas: checking whether s
 
 4. **Handle errors gracefully.**
    - "You do not have permission to view ideas.": tell the user plainly that their ProSkill account in this organization cannot view the idea board, and that an organization admin can help. Do not retry or invent results.
+   - "Unknown idea status "<x>". Use one of: ...": retry with one of the six statuses above, or without `status`.
    - "Your access token is not bound to an organization...": ask the user to re-authorize the ProSkill connector while signed in to their organization, then try again.
 
 ## Example
