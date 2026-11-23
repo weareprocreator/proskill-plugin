@@ -84,3 +84,7 @@ node scripts/release.mjs tag          # check, clean tree, then a local annotate
 Add a section for the new version to `CHANGELOG.md` before `check`. Tag only the commit on `main` that ships; the script never pushes, and prints the push command. GitHub Actions cannot run for this org, so this script is the release gate.
 
 Requires Node 22 or later. No dependencies.
+
+## License
+
+MIT, see [LICENSE](LICENSE). It covers the build tooling and the skill texts in this repo.

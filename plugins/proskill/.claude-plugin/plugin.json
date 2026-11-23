@@ -7,6 +7,7 @@
   },
   "homepage": "https://proskill.ai",
   "repository": "https://github.com/weareprocreator/proskill-plugin",
+  "license": "MIT",
   "keywords": [
     "proskill",
     "skills",
