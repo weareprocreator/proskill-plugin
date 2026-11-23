@@ -1,10 +1,15 @@
 #!/usr/bin/env node
-// scripts/build.mjs: build plugins/proskill/skills/ from sources/ and
-// starter-pack.json. No dependencies; Node 22 or later.
+// scripts/build.mjs: build both targets from sources/ and starter-pack.json.
+// No dependencies; Node 22 or later.
+//
+//   Claude Code: plugins/proskill/skills/ (committed).
+//   ChatGPT:     dist/chatgpt/proskill.zip (not committed), the templates in
+//                chatgpt/ plus the same stamped skills, at the same version.
 //
 //   npm run build                     Copy every sources/<slug>/ folder into the
-//                                     plugin and stamp its SKILL.md. Each folder
-//                                     must match its pinned tree hash. No network.
+//                                     plugin and stamp its SKILL.md, then write
+//                                     the ChatGPT zip. Each folder must match its
+//                                     pinned tree hash. No network.
 //
 //   npm run build -- --fetch          Refresh sources/ from ProSkill first: call
 //                                     install_skill for every pinned slug, download
@@ -33,18 +38,22 @@ import { homedir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  CHATGPT_TEMPLATE_DIR,
+  CHATGPT_ZIP_PATH,
   DEFAULT_MCP_URL,
   MANIFEST_PATH,
   PLUGIN_JSON_PATH,
   SKILLS_DIR,
   buildSkillFiles,
   bumpPatch,
+  chatgptPluginFiles,
   extractBundle,
   parseManifest,
   sha256Hex,
   sourceDir,
   toolResultText,
   treeHash,
+  zipFiles,
 } from "./lib.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -63,6 +72,20 @@ export function readTree(dir) {
   };
   if (existsSync(dir)) walk(dir);
   return out;
+}
+
+/**
+ * The ChatGPT plugin zip, built in memory from sources/, the manifest, the
+ * chatgpt/ templates and the Claude plugin's version. Writes nothing.
+ */
+export function buildChatgptZip(root = ROOT) {
+  const manifest = parseManifest(readFileSync(join(root, MANIFEST_PATH), "utf8"));
+  const { version } = JSON.parse(readFileSync(join(root, PLUGIN_JSON_PATH), "utf8"));
+  const skills = manifest.skills.map((pin) => ({
+    slug: pin.slug,
+    files: buildSkillFiles(readTree(join(root, sourceDir(pin.slug))), pin),
+  }));
+  return zipFiles(chatgptPluginFiles({ template: readTree(join(root, CHATGPT_TEMPLATE_DIR)), version, skills }));
 }
 
 function writeTree(dir, files) {
@@ -181,8 +204,13 @@ async function main(argv) {
     writeFileSync(at(PLUGIN_JSON_PATH), `${JSON.stringify(plugin, null, 2)}\n`);
     console.log(`${changed} skill folder(s) changed; plugin version is now ${plugin.version}`);
   } else {
-    console.log("every skill already matches its pin; nothing written");
+    console.log("every skill already matches its pin; Claude plugin unchanged");
   }
+
+  const zip = buildChatgptZip();
+  mkdirSync(dirname(at(CHATGPT_ZIP_PATH)), { recursive: true });
+  writeFileSync(at(CHATGPT_ZIP_PATH), zip);
+  console.log(`wrote ${CHATGPT_ZIP_PATH} (${zip.length} bytes, sha256 ${sha256Hex(zip)})`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

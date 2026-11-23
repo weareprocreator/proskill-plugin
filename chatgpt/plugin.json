@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "proskill",
+  "description": "Search, install, publish and review ProSkill skills, share feedback and propose ideas: the ProSkill connector plus every skill in the PS Starter Pack.",
+  "author": {
+    "name": "ProCreator"
+  },
+  "homepage": "https://proskill.ai",
+  "repository": "https://github.com/weareprocreator/proskill-plugin",
+  "keywords": [
+    "skills",
+    "proskill",
+    "mcp",
+    "ProCreator"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "ProSkill",
+        "shortDescription": "Your team's skills library",
+        "longDescription": "Connect to ProSkill to search skills, install verified bundles, publish updates, review submissions, share feedback and manage skill ideas. Uses your existing ProSkill account and organization permissions.",
+        "developerName": "ProCreator",
+        "category": "Developer Tools",
+        "capabilities": [],
+        "defaultPrompt": [
+          "Find a ProSkill skill for my task.",
+          "Help me publish a skill to ProSkill.",
+          "Show my ProSkill review queue."
+        ],
+        "logo": "./assets/icon.png",
+        "composerIcon": "./assets/icon.png"
+      }
+    }
+  }
+}

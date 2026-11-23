@@ -5,8 +5,14 @@
 // files (scripts, references), exactly as ProSkill serves them in the skill's
 // .skill bundle. The build copies every file into plugins/proskill/skills/<slug>/
 // and stamps the SKILL.md (scripts/stamp.mjs).
+//
+// Two targets come out of the same stamped skill files:
+//   Claude Code: plugins/proskill/ (committed; the marketplace serves it).
+//   ChatGPT:     dist/chatgpt/proskill.zip (built, not committed), from the
+//                templates in chatgpt/ plus every skill, for a workspace admin
+//                to upload in ChatGPT's Plugin Creator.
 import { createHash } from "node:crypto";
-import { inflateRawSync } from "node:zlib";
+import { crc32, deflateRawSync, inflateRawSync } from "node:zlib";
 import { readSkillStamp, stampSkillMd } from "./stamp.mjs";
 
 export const MANIFEST_PATH = "starter-pack.json";
@@ -15,6 +21,10 @@ export const PLUGIN_DIR = "plugins/proskill";
 export const PLUGIN_JSON_PATH = `${PLUGIN_DIR}/.claude-plugin/plugin.json`;
 export const SKILLS_DIR = `${PLUGIN_DIR}/skills`;
 export const DEFAULT_MCP_URL = "https://proskill.ai/api/mcp";
+export const CHATGPT_TEMPLATE_DIR = "chatgpt";
+export const CHATGPT_ZIP_PATH = "dist/chatgpt/proskill.zip";
+/** The one folder every entry of the ChatGPT zip sits in. */
+export const CHATGPT_ZIP_ROOT = "proskill";
 const MAX_FILE_BYTES = 1024 * 1024;
 const MAX_BUNDLE_FILES = 200;
 
@@ -123,8 +133,9 @@ export function toolResultText(body) {
  * packager produces. Stored and deflate entries only, each capped at 1 MB;
  * directory entries, __MACOSX and .DS_Store are skipped; any path that would
  * leave the folder throws. Returns null when the bytes are not a zip.
+ * With { stripTop: false } every path is returned exactly as stored.
  */
-export function extractBundle(buf) {
+export function extractBundle(buf, { stripTop = true } = {}) {
   const EOCD = 0x06054b50;
   const CDH = 0x02014b50;
   const LFH = 0x04034b50;
@@ -161,6 +172,90 @@ export function extractBundle(buf) {
   }
   if (entries.length === 0) return null;
   const tops = new Set(entries.map((e) => e.path.split("/")[0]));
-  const nested = tops.size === 1 && entries.every((e) => e.path.includes("/"));
+  const nested = stripTop && tops.size === 1 && entries.every((e) => e.path.includes("/"));
   return entries.map((e) => ({ path: nested ? e.path.slice(e.path.indexOf("/") + 1) : e.path, bytes: e.bytes }));
+}
+
+/**
+ * A zip of the given files, byte for byte the same for the same input: entries
+ * sorted by path, deflated, every timestamp 1980-01-01 00:00, regular files
+ * with mode 0644. No directory entries. extractBundle reads it back.
+ */
+export function zipFiles(files) {
+  const sorted = [...files].sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+  const DOS_DATE = (0 << 9) | (1 << 5) | 1; // 1980-01-01
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+  for (const f of sorted) {
+    if (safeRelativePath(f.path) !== f.path) throw new Error(`zip: unsafe path ${JSON.stringify(f.path)}`);
+    const name = Buffer.from(f.path, "utf8");
+    const raw = Buffer.from(f.bytes);
+    const data = deflateRawSync(raw, { level: 9 });
+    const crc = crc32(raw);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4); // version needed
+    local.writeUInt16LE(0x0800, 6); // UTF-8 names
+    local.writeUInt16LE(8, 8); // deflate
+    local.writeUInt16LE(0, 10); // time
+    local.writeUInt16LE(DOS_DATE, 12);
+    local.writeUInt32LE(crc, 14);
+    local.writeUInt32LE(data.length, 18);
+    local.writeUInt32LE(raw.length, 22);
+    local.writeUInt16LE(name.length, 26);
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE((3 << 8) | 20, 4); // made by Unix
+    central.writeUInt16LE(20, 6);
+    central.writeUInt16LE(0x0800, 8);
+    central.writeUInt16LE(8, 10);
+    central.writeUInt16LE(0, 12);
+    central.writeUInt16LE(DOS_DATE, 14);
+    central.writeUInt32LE(crc, 16);
+    central.writeUInt32LE(data.length, 20);
+    central.writeUInt32LE(raw.length, 24);
+    central.writeUInt16LE(name.length, 28);
+    central.writeUInt32LE((0o100644 << 16) >>> 0, 38);
+    central.writeUInt32LE(offset, 42);
+    locals.push(local, name, data);
+    centrals.push(central, name);
+    offset += local.length + name.length + data.length;
+  }
+  const cd = Buffer.concat(centrals);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(sorted.length, 8);
+  eocd.writeUInt16LE(sorted.length, 10);
+  eocd.writeUInt32LE(cd.length, 12);
+  eocd.writeUInt32LE(offset, 16);
+  return Buffer.concat([...locals, cd, eocd]);
+}
+
+/**
+ * The ChatGPT plugin's files, under CHATGPT_ZIP_ROOT/: the templates from
+ * chatgpt/ (plugin.json gets the Claude plugin's version, so both targets
+ * always carry the same number) and skills/<slug>/ for every pinned skill,
+ * from the same stamped files as the Claude target.
+ */
+export function chatgptPluginFiles({ template, version, skills }) {
+  const out = [];
+  let sawPlugin = false;
+  let sawMcp = false;
+  for (const f of template) {
+    if (f.path.startsWith("skills/")) throw new Error(`${CHATGPT_TEMPLATE_DIR}/${f.path}: skills come from the build, not the template`);
+    let bytes = f.bytes;
+    if (f.path === "plugin.json") {
+      sawPlugin = true;
+      const { $schema, name, version: _drop, ...rest } = JSON.parse(f.bytes.toString("utf8"));
+      bytes = Buffer.from(`${JSON.stringify({ ...($schema ? { $schema } : {}), name, version, ...rest }, null, 2)}\n`, "utf8");
+    }
+    if (f.path === "mcp.json") sawMcp = true;
+    out.push({ path: `${CHATGPT_ZIP_ROOT}/${f.path}`, bytes });
+  }
+  if (!sawPlugin || !sawMcp) throw new Error(`${CHATGPT_TEMPLATE_DIR}/ needs plugin.json and mcp.json`);
+  for (const { slug, files } of skills) {
+    for (const f of files) out.push({ path: `${CHATGPT_ZIP_ROOT}/skills/${slug}/${f.path}`, bytes: f.bytes });
+  }
+  return out;
 }

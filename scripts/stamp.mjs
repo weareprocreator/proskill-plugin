@@ -1,40 +1,43 @@
 // scripts/stamp.mjs: the identity ProSkill writes into every SKILL.md it serves.
 //
-// A port of src/lib/skills/skill-md-stamp.ts in weareprocreator/pro-skill
-// (identical on main and release/ga as of 2026-10-18, UPDATE_CHECK_REVISION
-// "2"). The server stamps every SKILL.md it serves; this repo stamps its plugin
-// copies the same way so they behave exactly like an installed copy: call
-// check_skill_version first, follow rollbacks, stop on an archive. When the
-// server's block text changes, change it here in the same words and bump
-// UPDATE_CHECK_REVISION; `npm test` then fails until the plugin is rebuilt.
+// A port of src/lib/skills/skill-md-stamp.ts in weareprocreator/pro-skill.
+// The server stamps every SKILL.md it serves; this repo stamps its plugin
+// copies the same way, so a plugin copy carries the same note as an installed
+// copy. When the server's note text changes, change it here in the same words
+// and bump UPDATE_CHECK_REVISION; `npm test` then fails until the plugin is
+// rebuilt.
+//
+// Revision 3 (this file) is a single informational line. Revision 2 was six
+// numbered orders to the assistant, and ChatGPT's safety check refuses to save
+// a skill that carries it. Stamping replaces whatever sits between the markers,
+// so a source that still carries revision 2 (as served before the server ships
+// revision 3) comes out with revision 3 only.
+//
+// PROVISIONAL: the revision 3 wording below is the text from the plan (D1) that
+// passed ChatGPT's save check on 2026-11-23. Port the server's revision 3 byte
+// for byte once it lands, and keep the text in updateCheckNote().
 //
 // Two things are written, and nothing else in the author's text changes:
 //   1. Frontmatter `metadata.proskill-slug` and `metadata.proskill-version`.
-//   2. The "ProSkill update check" block right after the frontmatter.
+//   2. The update-check note right after the frontmatter, between the markers.
 // Stamping is idempotent: an already stamped file has its block and keys
 // replaced, never doubled.
 
 export const UPDATE_CHECK_START = "<!-- proskill:update-check:start -->";
 export const UPDATE_CHECK_END = "<!-- proskill:update-check:end -->";
-export const UPDATE_CHECK_REVISION = "2";
+export const UPDATE_CHECK_REVISION = "3";
 
 const SLUG_KEY = "proskill-slug";
 const VERSION_KEY = "proskill-version";
 
+/** The informational line inside the block (revision 3, provisional). */
+export function updateCheckNote({ slug, version }) {
+  return `> This skill comes from ProSkill (slug \`${slug}\`, version \`${version}\`). With the ProSkill connector, \`check_skill_version\` reports whether a newer version exists.`;
+}
+
 /** The update-check block for one skill version, without trailing newline. */
-export function updateCheckBlock({ slug, version }, eol = "\n") {
-  return [
-    UPDATE_CHECK_START,
-    "> **ProSkill update check (do this before anything else in this skill).**",
-    `> This skill came from ProSkill: slug \`${slug}\`, version \`${version}\`.`,
-    `> 1. Call the ProSkill MCP tool \`check_skill_version\` with \`{ "slug": "${slug}", "installedVersion": "${version}" }\`.`,
-    "> 2. `up_to_date`: continue below.",
-    "> 3. `update_available`: tell the user the installed and live versions and what changed, then ask whether to update now. Ask every run, even if they said no before. On no, continue below with this version. On yes, apply the returned version, then follow its instructions instead of the ones below.",
-    "> 4. `rolled_back`: do not ask. Apply the returned live version, tell the user this version was rolled back and which version they are now on, then follow the new instructions instead of the ones below. `archived`: the skill was archived on ProSkill; do not run it, and tell the user why (`message`).",
-    "> 5. To apply: where you can write to this skill's folder, replace it with the verified bundle from the result; otherwise use the returned `instructions` for this run and give the user the `.skill` file to re-add. Details: the `ps-update` skill.",
-    "> 6. If ProSkill cannot be reached, the check fails, or it answers `unknown_skill`, continue below and tell the user the update check could not run.",
-    UPDATE_CHECK_END,
-  ].join(eol);
+export function updateCheckBlock(stamp, eol = "\n") {
+  return [UPDATE_CHECK_START, updateCheckNote(stamp), UPDATE_CHECK_END].join(eol);
 }
 
 /** Remove a previously stamped block exactly as stampSkillMd inserted it. */
