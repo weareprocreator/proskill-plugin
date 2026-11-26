@@ -57,6 +57,10 @@ ProSkill keeps every organization separate. The plugin works inside the organiza
 
 Each skill carries a short note with its ProSkill slug and version. With the ProSkill connector, `check_skill_version` (or the `ps-update` skill) tells you whether a newer version is out. New skill versions reach plugin users through plugin updates (`/plugin update proskill@proskill` in Claude Code; a new upload of the zip in ChatGPT).
 
+## Public directories
+
+To list ProSkill in Claude's or ChatGPT's public plugin directory, follow [docs/SUBMITTING.md](docs/SUBMITTING.md). The listing text for Claude is [plugins/proskill/README.md](plugins/proskill/README.md).
+
 ## Maintaining this repo
 
 - `starter-pack.json` pins which skills ship, the live version of each, and a hash of its folder.
