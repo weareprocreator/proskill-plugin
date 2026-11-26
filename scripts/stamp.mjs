@@ -13,9 +13,9 @@
 // so a source that still carries revision 2 (as served before the server ships
 // revision 3) comes out with revision 3 only.
 //
-// PROVISIONAL: the revision 3 wording below is the text from the plan (D1) that
-// passed ChatGPT's save check on 2026-11-23. Port the server's revision 3 byte
-// for byte once it lands, and keep the text in updateCheckNote().
+// Revision 3 matches the server byte for byte as of weareprocreator/pro-skill
+// PR #1183 (branch fix/chatgpt-neutral-update-note-and-tool-text, 4c50a011f),
+// not yet merged. If review changes the sentence, change updateCheckNote() too.
 //
 // Two things are written, and nothing else in the author's text changes:
 //   1. Frontmatter `metadata.proskill-slug` and `metadata.proskill-version`.
@@ -30,7 +30,7 @@ export const UPDATE_CHECK_REVISION = "3";
 const SLUG_KEY = "proskill-slug";
 const VERSION_KEY = "proskill-version";
 
-/** The informational line inside the block (revision 3, provisional). */
+/** The informational line inside the block (revision 3). */
 export function updateCheckNote({ slug, version }) {
   return `> This skill comes from ProSkill (slug \`${slug}\`, version \`${version}\`). With the ProSkill connector, \`check_skill_version\` reports whether a newer version exists.`;
 }
