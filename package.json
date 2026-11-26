@@ -1,13 +1,14 @@
 {
   "name": "proskill-plugin",
   "private": true,
-  "description": "The ProSkill plugin for Claude Code: the ProSkill MCP server and the PS Starter Pack skills.",
+  "description": "The ProSkill plugin for Claude Code and ChatGPT: the ProSkill MCP server and the PS Starter Pack skills.",
   "type": "module",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "release:check": "node scripts/release.mjs check"
   }
 }
