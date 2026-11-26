@@ -140,6 +140,28 @@ describe("the committed plugin", () => {
     assert.ok(existsSync(join(ROOT, PLUGIN_JSON_PATH)));
   });
 
+  it("meets the Claude plugin directory's pre-submission rules", () => {
+    const plugin = JSON.parse(read(PLUGIN_JSON_PATH));
+    assert.match(plugin.name, /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/);
+    assert.ok(!["claude", "anthropic", "official", "plugin", "mcp", "test"].includes(plugin.name));
+    for (const key of ["description", "version", "license"]) assert.ok(plugin[key], key);
+    assert.ok(plugin.author?.name, "author.name");
+    // The listing description: a README in the plugin folder, 40 words or more outside code blocks.
+    const readme = read(`${PLUGIN_DIR}/README.md`).replace(/```[\s\S]*?```/g, "");
+    assert.ok(readme.split(/\s+/).filter(Boolean).length >= 40, "plugin README has at least 40 words");
+    // It discloses every destination and every place the skills write to.
+    for (const must of [DEFAULT_MCP_URL, "signed", "~/.claude/skills", "Downloads", "preflight.py", "PROSKILL_MCP_URL", "https://proskill.ai/privacy"]) {
+      assert.ok(readme.includes(must), `plugin README mentions ${must}`);
+    }
+    const files = readTree(join(ROOT, PLUGIN_DIR));
+    assert.ok(files.length <= 512, "512 files at most");
+    for (const f of files) {
+      assert.ok(!/(^|\/)(\.DS_Store|Thumbs\.db|desktop\.ini|__MACOSX)(\/|$)/.test(f.path), f.path);
+      if (!/\.(png|jpe?g|gif|webp|svg|woff2?|ttf|otf)$/i.test(f.path)) assert.ok(f.bytes.length < 256 * 1024, `${f.path} is under 256 KiB`);
+    }
+    assert.ok(!existsSync(join(ROOT, PLUGIN_DIR, "hooks")), "no hooks");
+  });
+
   it("publishes no email address other than placeholders, in any text file", () => {
     for (const pin of manifest.skills) {
       for (const f of readTree(join(ROOT, SKILLS_DIR, pin.slug)).filter((x) => TEXT.test(x.path))) {
@@ -256,6 +278,29 @@ describe("the ChatGPT target", () => {
     const ui = pluginJson.extensions["com.openai"].interface;
     assert.equal(ui.privacyPolicyURL, "https://proskill.ai/privacy");
     assert.equal(ui.termsOfServiceURL, "https://proskill.ai/terms");
+  });
+
+  it("meets the ChatGPT plugin directory's listing rules", () => {
+    const openai = pluginJson.extensions["com.openai"];
+    const ui = openai.interface;
+    for (const key of ["websiteURL", "supportURL", "privacyPolicyURL", "termsOfServiceURL"]) {
+      assert.match(ui[key] ?? "", /^https:\/\/[^\s@]+$/, key);
+      assert.ok(ui[key].length <= 1024, key);
+    }
+    assert.ok(ui.displayName.length <= 30, "displayName is 30 characters at most");
+    assert.ok(ui.shortDescription.length <= 30, "shortDescription is 30 characters at most");
+    assert.ok(ui.longDescription.length <= 4000, "longDescription is 4000 characters at most");
+    assert.ok(ui.developerName.length <= 80, "developerName is 80 characters at most");
+    assert.ok(ui.defaultPrompt.length <= 3 && ui.defaultPrompt.every((p) => p.length <= 128), "defaultPrompt: 3 prompts of 128 characters at most");
+    assert.ok(!/\b(mcp|plugin)\b/i.test(ui.displayName), "the display name carries no MCP or Plugin suffix");
+    // The onboarding skill is a packaged SKILL.md, relative to the plugin root.
+    assert.match(openai.onboardingSkill, /^\.\/skills\/[a-z0-9-]+\/SKILL\.md$/);
+    assert.ok(zipFile(`${CHATGPT_ZIP_ROOT}/${openai.onboardingSkill.slice(2)}`), openai.onboardingSkill);
+    assert.ok(existsSync(join(ROOT, PLUGIN_DIR, openai.onboardingSkill)), openai.onboardingSkill);
+    // Public submission refuses lifecycle hooks, app references and server headers.
+    assert.ok(!zipEntries.some((f) => /(^|\/)(hooks\/|\.app\.json$)/.test(f.path)), "no hooks or app references");
+    assert.equal(pluginJson.apps, undefined);
+    assert.equal(mcpJson.mcpServers.proskill.headers, undefined);
   });
 
   it("matches dist/chatgpt/proskill.zip when one is built", (t) => {
