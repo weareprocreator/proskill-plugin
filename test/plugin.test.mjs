@@ -6,7 +6,7 @@ import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { crc32, deflateRawSync } from "node:zlib";
-import { buildChatgptZip, readTree } from "../scripts/build.mjs";
+import { buildChatgptZip, portablePluginFiles, readTree } from "../scripts/build.mjs";
 import { changelogHas, nextVersion } from "../scripts/release.mjs";
 import {
   CHATGPT_TEMPLATE_DIR,
@@ -239,6 +239,25 @@ describe("the ChatGPT target", () => {
     assert.deepEqual(server.extensions["com.openai"].auth, { type: "oauth", client: { mode: "dcr" }, baseScopes: ["mcp"], defaultScopes: ["mcp"] });
   });
 
+  it("is also committed in the Claude plugin folder, for ChatGPT's GitHub marketplace import", () => {
+    const portable = portablePluginFiles(ROOT);
+    assert.deepEqual(portable.map((f) => f.path).sort(), ["assets/icon.png", "mcp.json", "plugin.json"]);
+    for (const f of portable) {
+      assert.ok(readFileSync(join(ROOT, PLUGIN_DIR, f.path)).equals(f.bytes), `${PLUGIN_DIR}/${f.path}: run npm run build`);
+      assert.ok(zipFile(`${CHATGPT_ZIP_ROOT}/${f.path}`).bytes.equals(f.bytes), f.path);
+    }
+    // Claude Code keeps its own manifest and MCP file next to them.
+    assert.ok(existsSync(join(ROOT, PLUGIN_JSON_PATH)));
+    assert.ok(existsSync(join(ROOT, PLUGIN_DIR, ".mcp.json")));
+  });
+
+  it("links the privacy policy and terms on both platforms", () => {
+    assert.equal(JSON.parse(read(PLUGIN_JSON_PATH)).privacyPolicyUrl, "https://proskill.ai/privacy");
+    const ui = pluginJson.extensions["com.openai"].interface;
+    assert.equal(ui.privacyPolicyURL, "https://proskill.ai/privacy");
+    assert.equal(ui.termsOfServiceURL, "https://proskill.ai/terms");
+  });
+
   it("matches dist/chatgpt/proskill.zip when one is built", (t) => {
     if (!existsSync(join(ROOT, CHATGPT_ZIP_PATH))) return t.skip("no dist zip; run npm run build");
     assert.ok(readFileSync(join(ROOT, CHATGPT_ZIP_PATH)).equals(zipBytes), "run npm run build");
@@ -261,7 +280,7 @@ describe("no file names the retired host", () => {
     assert.deepEqual(hits, []);
   });
   it("in any manifest or MCP config of either target", () => {
-    for (const p of [PLUGIN_JSON_PATH, `${PLUGIN_DIR}/.mcp.json`, ".claude-plugin/marketplace.json", "README.md", "CHANGELOG.md"]) {
+    for (const p of [PLUGIN_JSON_PATH, `${PLUGIN_DIR}/.mcp.json`, `${PLUGIN_DIR}/plugin.json`, `${PLUGIN_DIR}/mcp.json`, ".claude-plugin/marketplace.json", "README.md", "CHANGELOG.md"]) {
       if (existsSync(join(ROOT, p))) assert.ok(!read(p).includes(OLD_HOST), p);
     }
     for (const p of ["plugin.json", "mcp.json"]) assert.ok(!zipFile(`${CHATGPT_ZIP_ROOT}/${p}`).bytes.toString("utf8").includes(OLD_HOST), p);

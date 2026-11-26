@@ -2,7 +2,9 @@
 // scripts/build.mjs: build both targets from sources/ and starter-pack.json.
 // No dependencies; Node 22 or later.
 //
-//   Claude Code: plugins/proskill/skills/ (committed).
+//   Claude Code: plugins/proskill/skills/ (committed). The same folder also
+//                gets OpenAI's plugin.json, mcp.json and icon, so a ChatGPT
+//                workspace can import this repo's marketplace from GitHub.
 //   ChatGPT:     dist/chatgpt/proskill.zip (not committed), the templates in
 //                chatgpt/ plus the same stamped skills, at the same version.
 //
@@ -40,8 +42,10 @@ import { fileURLToPath } from "node:url";
 import {
   CHATGPT_TEMPLATE_DIR,
   CHATGPT_ZIP_PATH,
+  CHATGPT_ZIP_ROOT,
   DEFAULT_MCP_URL,
   MANIFEST_PATH,
+  PLUGIN_DIR,
   PLUGIN_JSON_PATH,
   SKILLS_DIR,
   buildSkillFiles,
@@ -86,6 +90,20 @@ export function buildChatgptZip(root = ROOT) {
     files: buildSkillFiles(readTree(join(root, sourceDir(pin.slug))), pin),
   }));
   return zipFiles(chatgptPluginFiles({ template: readTree(join(root, CHATGPT_TEMPLATE_DIR)), version, skills }));
+}
+
+/**
+ * OpenAI's own plugin files for plugins/proskill/ (plugin.json with the
+ * com.openai interface block, mcp.json, assets/icon.png): the chatgpt/
+ * templates with the Claude plugin's version. ChatGPT reads them when a
+ * workspace admin imports this repo's marketplace from GitHub; Claude Code
+ * reads .claude-plugin/plugin.json and .mcp.json and ignores them.
+ */
+export function portablePluginFiles(root = ROOT) {
+  const { version } = JSON.parse(readFileSync(join(root, PLUGIN_JSON_PATH), "utf8"));
+  const prefix = `${CHATGPT_ZIP_ROOT}/`;
+  return chatgptPluginFiles({ template: readTree(join(root, CHATGPT_TEMPLATE_DIR)), version, skills: [] })
+    .map((f) => ({ path: f.path.slice(prefix.length), bytes: f.bytes }));
 }
 
 function writeTree(dir, files) {
@@ -205,6 +223,14 @@ async function main(argv) {
     console.log(`${changed} skill folder(s) changed; plugin version is now ${plugin.version}`);
   } else {
     console.log("every skill already matches its pin; Claude plugin unchanged");
+  }
+
+  for (const f of portablePluginFiles()) {
+    const dest = at(join(PLUGIN_DIR, f.path));
+    if (existsSync(dest) && readFileSync(dest).equals(f.bytes)) continue;
+    mkdirSync(dirname(dest), { recursive: true });
+    writeFileSync(dest, f.bytes);
+    console.log(`wrote ${PLUGIN_DIR}/${f.path} (for ChatGPT's GitHub import)`);
   }
 
   const zip = buildChatgptZip();

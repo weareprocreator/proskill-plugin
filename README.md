@@ -13,14 +13,17 @@ The first ProSkill tool call opens ProSkill's sign-in in your browser (or run `/
 
 ## Install in ChatGPT
 
-A ChatGPT workspace admin adds the plugin once for the whole workspace:
+A ChatGPT workspace admin adds the plugin once for the whole workspace, from this GitHub repo. ChatGPT reads the same marketplace file Claude Code does.
 
-1. Build it from this repo: `npm run build` writes `dist/chatgpt/proskill.zip`.
-2. In ChatGPT, open the workspace's **Plugin Creator** and upload `dist/chatgpt/proskill.zip` as a new plugin. Keep it as a draft until it has been tried.
-3. Check that it connects to `https://proskill.ai/api/mcp`, lists the ProSkill tools, and that sign-in opens proskill.ai.
-4. Publish it to the workspace. Members connect their own ProSkill account the first time they use it.
+1. Open the Admin Console (admin.openai.com), pick the workspace, then **Plugins > Add > Import marketplace**.
+2. **Source:** `https://github.com/weareprocreator/proskill-plugin` (the repo URL only). Leave **Path** empty. **Branch, tag, or commit:** a release tag such as `v1.1.0`, or `main` to follow every release.
+3. Select **Import marketplace** and authorize GitHub when asked.
+4. In the import results, open **ProSkill** and set who can install it (or install it for the whole workspace).
+5. Members install it from Plugins and connect their own ProSkill account the first time; sign-in opens proskill.ai.
 
-The zip holds `plugin.json` (with the ChatGPT interface block), `mcp.json` (streamable HTTP, OAuth with dynamic client registration, scope `mcp`), the icon, and the same 12 skills as the Claude Code plugin. To update, upload the zip from the newer release over the existing plugin. Replace any older hand-made ProSkill plugin in the workspace rather than running both, or every tool appears twice.
+ChatGPT checks the repo daily, or at once with **Admin Console > Plugins > Marketplaces > ProSkill > Sync now**, so a new release reaches the workspace without another upload. It reads `plugins/proskill/plugin.json` (the ChatGPT interface block), `plugins/proskill/mcp.json` (streamable HTTP to `https://proskill.ai/api/mcp`, OAuth with dynamic client registration, scope `mcp`), the icon and `skills/`. Claude Code reads `.claude-plugin/plugin.json` and `.mcp.json` in the same folder. Replace any older hand-made ProSkill plugin in the workspace rather than running both, or every tool appears twice.
+
+If GitHub import is not available, `npm run build` also writes `dist/chatgpt/proskill.zip` (the same files and skills) for **Plugins > Add > Upload plugin archive**. Uploading needs the workspace's plugin upload permission.
 
 ## One organization at a time
 
@@ -59,7 +62,7 @@ Each skill carries a short note with its ProSkill slug and version. With the Pro
 - `starter-pack.json` pins which skills ship, the live version of each, and a hash of its folder.
 - `sources/<slug>/` is each skill's folder (SKILL.md plus any supporting files, such as `ps-creator/scripts/preflight.py`), exactly as ProSkill serves it.
 - `plugins/proskill/skills/` is generated from those two. Never edit it by hand.
-- `chatgpt/` holds the ChatGPT plugin's `plugin.json`, `mcp.json` and icon. The build adds the version (taken from the Claude Code plugin) and the skills, and writes `dist/chatgpt/proskill.zip` (not committed).
+- `chatgpt/` holds the ChatGPT plugin's `plugin.json`, `mcp.json` and icon. The build adds the version (taken from the Claude Code plugin), writes them into `plugins/proskill/` for ChatGPT's GitHub import, and writes `dist/chatgpt/proskill.zip` with the skills (not committed). Never edit the copies in `plugins/proskill/` by hand.
 - `scripts/stamp.mjs` writes the update-check note into every SKILL.md, in the same words as the server (`src/lib/skills/skill-md-stamp.ts` in pro-skill). Stamping replaces any older note, so no output carries the revision 2 block ChatGPT refuses.
 
 ```bash
